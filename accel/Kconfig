@@ -4,6 +4,9 @@ config WHPX
 config NVMM
     bool
 
+config BHYVE
+    bool
+
 config HVF
     bool
 

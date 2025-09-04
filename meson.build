@@ -322,6 +322,7 @@ if cpu == 'aarch64'
 elif cpu == 'x86_64'
   accelerator_targets += {
     'CONFIG_HVF': ['x86_64-softmmu'],
+    'CONFIG_BHYVE': ['i386-softmmu', 'x86_64-softmmu'],
     'CONFIG_NVMM': ['i386-softmmu', 'x86_64-softmmu'],
     'CONFIG_WHPX': ['i386-softmmu', 'x86_64-softmmu'],
     'CONFIG_MSHV': ['x86_64-softmmu'],
@@ -900,6 +901,14 @@ if get_option('hvf').allowed()
   endif
 endif
 
+bhyve = not_found
+if get_option('bhyve').allowed() and host_os == 'freebsd'
+  bhyve = cc.find_library('vmmapi', required: get_option('bhyve'), static: false)
+  if bhyve.found()
+    accelerators += 'CONFIG_BHYVE'
+  endif
+endif
+
 nvmm = not_found
 if host_os == 'netbsd'
   nvmm = cc.find_library('nvmm', required: get_option('nvmm'))
@@ -944,6 +953,9 @@ if 'CONFIG_KVM' not in accelerators and get_option('kvm').enabled()
 endif
 if 'CONFIG_HVF' not in accelerators and get_option('hvf').enabled()
   error('HVF not available on this platform')
+endif
+if 'CONFIG_BHYVE' not in accelerators and get_option('bhyve').enabled()
+  error('Bhyve not available on this platform')
 endif
 if 'CONFIG_NVMM' not in accelerators and get_option('nvmm').enabled()
   error('NVMM not available on this platform')
@@ -4815,6 +4827,7 @@ if have_system
   summary_info += {'KVM support':       config_all_accel.has_key('CONFIG_KVM')}
   summary_info += {'HVF support':       config_all_accel.has_key('CONFIG_HVF')}
   summary_info += {'WHPX support':      config_all_accel.has_key('CONFIG_WHPX')}
+  summary_info += {'Bhyve support':     config_all_accel.has_key('CONFIG_BHYVE')}
   summary_info += {'NVMM support':      config_all_accel.has_key('CONFIG_NVMM')}
   summary_info += {'MSHV support':      config_all_accel.has_key('CONFIG_MSHV')}
   summary_info += {'Xen support':       xen.found()}

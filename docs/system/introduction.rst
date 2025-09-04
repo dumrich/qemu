@@ -32,6 +32,9 @@ Tiny Code Generator (TCG) capable of emulating many CPUs.
   * - Windows Hypervisor Platform (whpx)
     - Windows
     - x86
+  * - FreeBSD Virtual Machine Monitor (bhyve)
+    - FreeBSD
+    - x86
   * - NetBSD Virtual Machine Monitor (nvmm)
     - NetBSD
     - x86
