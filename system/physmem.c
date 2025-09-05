@@ -40,6 +40,7 @@
 #include "hw/core/qdev-properties.h"
 #include "hw/core/boards.h"
 #include "system/xen.h"
+#include "system/bhyve.h"
 #include "system/kvm.h"
 #include "system/tcg.h"
 #include "system/qtest.h"
@@ -2206,9 +2207,13 @@ static void ram_block_add(RAMBlock *new_block, Error **errp)
                 return;
             }
         } else {
-            new_block->host = qemu_anon_ram_alloc(new_block->max_length,
+            if (bhyve_enabled()) {
+                new_block->host = bhyve_ram_alloc(new_block->max_length, &new_block->mr->align, shared | (noreserve << 1 ), new_block->mr->name);
+            } else {
+                new_block->host = qemu_anon_ram_alloc(new_block->max_length,
                                                   &new_block->mr->align,
                                                   shared, noreserve);
+            }
             if (!new_block->host) {
                 error_setg_errno(errp, errno,
                                  "cannot set up guest memory '%s'",
@@ -2543,6 +2548,7 @@ RAMBlock *qemu_ram_alloc_internal(ram_addr_t size, ram_addr_t max_size,
              */
             new_block = qemu_ram_alloc_from_fd(size, max_size, resized, mr,
                                                ram_flags, fd, 0, reused, NULL);
+
             if (new_block) {
                 trace_qemu_ram_alloc_shared(name, new_block->used_length,
                                             new_block->max_length, fd,
@@ -2557,6 +2563,7 @@ RAMBlock *qemu_ram_alloc_internal(ram_addr_t size, ram_addr_t max_size,
     }
 #endif
 
+    
     align = qemu_real_host_page_size();
     align = MAX(align, TARGET_PAGE_SIZE);
     size = ROUND_UP(size, align);
@@ -2578,6 +2585,7 @@ RAMBlock *qemu_ram_alloc_internal(ram_addr_t size, ram_addr_t max_size,
         error_propagate(errp, local_err);
         return NULL;
     }
+
     return new_block;
 }
 
