@@ -1376,7 +1376,7 @@ static int do_open(const char *vmname, MachineState* ms) {
 
 
 static int
-bhyve_accel_init(MachineState *ms)
+bhyve_accel_init(AccelState *as, MachineState *ms)
 {
     int err;
     printf("Bhyve Accelerator Machine Initialization\n");
