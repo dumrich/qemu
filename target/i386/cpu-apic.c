@@ -34,6 +34,8 @@ APICCommonClass *apic_get_class(Error **errp)
         apic_type = "xen-apic";
     } else if (whpx_apic_in_platform()) {
         apic_type = "whpx-apic";
+    } else if (bhyve_apic_in_platform()) {
+        apic_type = "bhyve-apic";
     }
 
     return APIC_COMMON_CLASS(object_class_by_name(apic_type));

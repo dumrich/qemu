@@ -41,6 +41,7 @@
 #include "hw/input/i8042.h"
 #include "hw/audio/pcspk.h"
 #include "system/system.h"
+#include "system/bhyve.h"
 #include "system/xen.h"
 #include "system/reset.h"
 #include "kvm/kvm_i386.h"
@@ -1257,6 +1258,8 @@ void pc_i8259_create(ISABus *isa_bus, qemu_irq *i8259_irqs)
         i8259 = kvm_i8259_init(isa_bus);
     } else if (xen_enabled()) {
         i8259 = xen_interrupt_controller_init();
+    } else if (bhyve_apic_in_platform()) {
+        i8259 = bhyve_i8259_init(isa_bus);
     } else {
         i8259 = i8259_init(isa_bus, x86_allocate_cpu_irq());
     }

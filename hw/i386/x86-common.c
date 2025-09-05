@@ -26,6 +26,7 @@
 #include "qemu/units.h"
 #include "qemu/datadir.h"
 #include "qapi/error.h"
+#include "system/bhyve.h"
 #include "system/numa.h"
 #include "system/system.h"
 #include "system/xen.h"
@@ -507,6 +508,8 @@ void ioapic_init_gsi(GSIState *gsi_state, Object *parent)
     assert(parent);
     if (kvm_ioapic_in_kernel()) {
         dev = qdev_new(TYPE_KVM_IOAPIC);
+    } else if (bhyve_apic_in_platform()) {
+        dev = qdev_new(TYPE_BHYVE_IOAPIC);
     } else {
         dev = qdev_new(TYPE_IOAPIC);
     }
