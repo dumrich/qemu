@@ -1294,7 +1294,7 @@ void *bhyve_ram_alloc(size_t mr_size, uint64_t *alignment, int flags, const char
 
 
     if (strcmp(name, "pc.ram") == 0) {
-        ram_memseg.seg_start = bhyve_allocate_pc_memory(mr_size, ram_memseg.name);
+        ram_memseg.seg_start = bhyve_allocate_pc_memory(mr_size, ram_memseg.name, ram_memseg.segid);
     } else {
         ram_memseg.seg_start = vm_create_devmem(mach->vm, ram_memseg.segid, ram_memseg.name, mr_size);
     }
