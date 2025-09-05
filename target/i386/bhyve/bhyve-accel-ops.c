@@ -2,7 +2,7 @@
 #include <unistd.h>
 #include "qemu/osdep.h"
 #include "qemu/thread.h"
-#include "system/accel-ops.h"
+#include "accel/accel-cpu-ops.h"
 #include "qemu/main-loop.h"
 #include "qemu/guest-random.h"
 
