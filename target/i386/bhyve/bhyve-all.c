@@ -1,5 +1,6 @@
 #include "qemu/osdep.h"
 #include "qemu/accel.h"
+#include "accel/accel-ops.h"
 #include "hw/boards.h"
 #include "qemu/typedefs.h"
 #include "system/runstate.h"
@@ -75,7 +76,7 @@ static enum host_vendor get_cpu_vendor(void) {
 
 struct bhyve_machine bhyve_mach;
 
-int segid_num = 1;
+int segid_num = 0;
 
 /* -------------------------------------------------------------------------- */
 
@@ -1228,12 +1229,12 @@ static void bhyve_memory_init(void)
 }
 
 /* Allocate memory */
-static void* bhyve_allocate_pc_memory(size_t mr_size, const char* name) {
+static void* bhyve_allocate_pc_memory(size_t mr_size, const char* name, int segid) {
     struct bhyve_machine *mach = get_bhyve_mach();
     char* baseaddr;
     int err;
 
-    err = vm_setup_qmemory(mach->vm, mr_size, VM_MMAP_ALL, name);
+    err = vm_setup_qmemory(mach->vm, mr_size, segid, VM_MMAP_ALL, name);
     if (err < 0) {
         fprintf(stderr, "Couldn't setup PC Memory\n");
         exit(4);
@@ -1286,14 +1287,13 @@ void *bhyve_ram_alloc(size_t mr_size, uint64_t *alignment, int flags, const char
     struct bhyve_machine *mach = get_bhyve_mach();
     struct bhyve_host_seg ram_memseg;
     ram_memseg.mmap_flags = MAP_SHARED | MAP_NORESERVE | MAP_FIXED;
-    ram_memseg.segid = segid_num++;
+    ram_memseg.segid = segid_num;
     ram_memseg.size = mr_size;
     ram_memseg.name = bhyve_serialize_name(name);
     puts(name);
 
 
     if (strcmp(name, "pc.ram") == 0) {
-        ram_memseg.segid = VM_SYSMEM;
         ram_memseg.seg_start = bhyve_allocate_pc_memory(mr_size, ram_memseg.name);
     } else {
         ram_memseg.seg_start = vm_create_devmem(mach->vm, ram_memseg.segid, ram_memseg.name, mr_size);
