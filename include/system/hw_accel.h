@@ -17,6 +17,7 @@
 #include "system/mshv.h"
 #include "system/whpx.h"
 #include "system/nvmm.h"
+#include "system/bhyve.h"
 
 /**
  * cpu_synchronize_state:
