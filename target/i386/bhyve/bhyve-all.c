@@ -88,19 +88,6 @@ static struct bhyve_machine *get_bhyve_mach(void) {
     return &bhyve_mach;
 }
 
-void
-vm_inject_fault(struct vcpu *vcpu, int vector, int errcode_valid,
-    int errcode)
-{
-	int error, restart_instruction;
-
-	restart_instruction = 1;
-
-	error = vm_inject_exception(vcpu, vector, errcode_valid, errcode,
-	    restart_instruction);
-	assert(error == 0);
-}
-
 static void dump_registers(struct vcpu *vcpu) {
     uint64_t val;
     int err;
