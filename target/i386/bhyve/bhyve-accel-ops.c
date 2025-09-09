@@ -82,6 +82,7 @@ static void bhyve_accel_ops_class_init(ObjectClass *oc, const void *data)
     // VCPU Thread Management
     ops->create_vcpu_thread = bhyve_start_vcpu_thread;
     ops->kick_vcpu_thread = bhyve_kick_vcpu_thread;
+    ops->handle_interrupt = generic_handle_interrupt;
 
     // CPU State Synchronization
     ops->synchronize_post_reset = bhyve_cpu_synchronize_post_reset;
