@@ -76,7 +76,7 @@ static enum host_vendor get_cpu_vendor(void) {
 
 struct bhyve_machine bhyve_mach;
 
-int segid_num = 0;
+int segid_num = 1;
 
 /* -------------------------------------------------------------------------- */
 
