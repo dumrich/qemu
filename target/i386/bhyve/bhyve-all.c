@@ -734,6 +734,7 @@ static void bhyve_vcpu_pre_run(CPUState *cpu) {
     X86CPU *x86_cpu = X86_CPU(cpu);
     uint8_t tpr;
     bool sync_tpr = false;
+    int ret;
 
     bql_lock();
 
