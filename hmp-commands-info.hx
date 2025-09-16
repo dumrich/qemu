@@ -308,21 +308,16 @@ SRST
 ERST
 
     {
-        .name       = "accelerators",
+        .name       = "mshv",
         .args_type  = "",
         .params     = "",
-        .help       = "show present and enabled information",
-        .cmd        = hmp_info_accelerators,
+        .help       = "show MSHV information",
+        .cmd        = hmp_info_mshv,
     },
 
 SRST
-  ``info accelerators``
-    Show which accelerators are compiled into a QEMU binary, and what accelerator
-    is in use. For example::
-
-        kvm qtest [tcg]
-
-    indicates that TCG in use, and that KVM and qtest are also available.
+  ``info mshv``
+    Show MSHV information.
 ERST
 
     {
