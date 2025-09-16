@@ -930,7 +930,7 @@ static int bhyve_vcpu_run(CPUState *cpu) {
         case VM_EXITCODE_PAUSE:
             continue;
         default:
-            printf("Unhandled exit. Register Dump...");
+            printf("Unhandled exit. Register Dump...\n");
             dump_registers(qcpu->vcpu);
             bql_lock();
             qemu_system_guest_panicked(cpu_get_crash_info(cpu));
