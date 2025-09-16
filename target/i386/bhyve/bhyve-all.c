@@ -147,10 +147,10 @@ static void dump_registers(struct vcpu *vcpu) {
 
 /* -------------------------------------------------------------------------- */
 
+/*
 static int
 vmm_set_segment(struct vcpu *vcpu, int reg, const SegmentCache *qseg)
 {
-    uint32_t attrib = qseg->flags;
     int error;
     error = vm_set_register(vcpu, reg, qseg->selector);
     if (error) {
@@ -167,24 +167,23 @@ vmm_set_segment(struct vcpu *vcpu, int reg, const SegmentCache *qseg)
 static int
 vmm_get_segment(struct vcpu *vcpu, int reg, const SegmentCache *qseg)
 {
-    uint32_t attrib = qseg->flags;
     int error;
-    error = vm_get_register(vcpu, reg, &qseg->flags);
+    error = vm_get_register(vcpu, reg, (const uint64_t*)&qseg->flags);
     if (error) {
         return error;
     }
-    error = vm_get_desc(vcpu, reg, &qseg->base, &qseg->limit, &qseg->flags);
+    error = vm_get_desc(vcpu, reg, (const unsigned long*)&qseg->base, &qseg->limit, (const unsigned int*)&qseg->flags);
     if (error) {
         return error;
     }
     return 0;
 }
+*/
 
 static int vmm_set_registers(CPUState *cpu) {
     CPUX86State *env = cpu_env(cpu);
     AccelCPUState *qcpu = cpu->accel;
     struct vcpu* vcpu = qcpu->vcpu;
-    size_t i;
 
     /* GPRs */
     int ret;
@@ -730,10 +729,8 @@ static int bhyve_wrmsr(struct vm_exit *vme) {
 /* -------------------------------------------------------------------------- */
 
 static void bhyve_vcpu_pre_run(CPUState *cpu) {
-    CPUX86State *env = cpu_env(cpu);
-    struct bhyve_machine* mach = get_bhyve_mach();
     AccelCPUState *qcpu = cpu->accel;
-    struct vcpu *vcpu = &qcpu->vcpu;
+    struct vcpu *vcpu = qcpu->vcpu;
     X86CPU *x86_cpu = X86_CPU(cpu);
     uint8_t tpr;
     bool sync_tpr = false;
@@ -783,7 +780,6 @@ static void bhyve_vcpu_post_run(CPUState *cpu) {
     AccelCPUState *qcpu = cpu->accel;
     struct vcpu *vcpu = qcpu->vcpu;
     uint64_t val;
-    int ret;
 
     // Set Eflags
     ret = vm_get_register(vcpu, VM_REG_GUEST_RFLAGS, &env->eflags);
@@ -807,11 +803,10 @@ static int bhyve_vcpu_run(CPUState *cpu) {
 
 	struct vm_exit vme;
 	struct vm_run vmrun;
-	int error, rc;
+	int error, rc = 0;
 	enum vm_exitcode exitcode;
     enum vm_suspend_how how;
-	cpuset_t active_cpus, dmask;
-    uint8_t* p;
+	cpuset_t dmask;
 
 	vmrun.vm_exit = &vme;
 	vmrun.cpuset = &dmask;
@@ -955,10 +950,8 @@ int bhyve_init_vcpu(CPUState *cpu)
 
     AccelCPUState *qcpu;
     struct seg_desc cs_desc;
-	uint64_t rip, desc_base;
-	uint32_t desc_access, desc_limit;
-	uint16_t sel;
-    int ret, err, tmp;
+	uint64_t desc_base;
+    int err, tmp;
 
     qcpu = g_new0(AccelCPUState, 1);
 
@@ -1026,8 +1019,7 @@ void bhyve_destroy_vcpu(CPUState *cpu) {
 
 int bhyve_vcpu_exec(CPUState *cpu)
 {
-    int ret, fatal;
-    struct bhyve_machine* mach = get_bhyve_mach();
+    int ret;
     while (1) {
         if (cpu->exception_index >= EXCP_INTERRUPT) {
             ret = cpu->exception_index;
@@ -1114,12 +1106,8 @@ static void bhyve_update_mapping(hwaddr start_pa, ram_addr_t size,
 {
     struct bhyve_machine *mach = get_bhyve_mach();
     struct bhyve_seg_and_off segoff;
-    int ret, prot;
+    int prot;
     segoff = calc_segoff_from_vmap(mach->host_vmap, host_va);
-    if (segoff.offset < 0) {
-        fprintf(stderr, "Invalid host offset\n");
-        exit(4);
-    }
 
     if (add) {
         prot = PROT_READ | PROT_EXEC;
@@ -1235,7 +1223,7 @@ static void* bhyve_allocate_pc_memory(size_t mr_size, const char* name, int segi
     return baseaddr;
 }
 
-char *bhyve_serialize_name(const char *input) {
+static char *bhyve_serialize_name(const char *input) {
     if (!input) return NULL;
 
     size_t len = strlen(input);
@@ -1285,7 +1273,7 @@ void *bhyve_ram_alloc(size_t mr_size, uint64_t *alignment, int flags, const char
     } else {
         ram_memseg.seg_start = vm_create_devmem(mach->vm, segid_num++, ram_memseg.name, mr_size);
     }
-    if (!ram_memseg.seg_start || ram_memseg.seg_start == SIZE_MAX) {
+    if (!ram_memseg.seg_start || ram_memseg.seg_start == (void*)SIZE_MAX) {
         fprintf(stderr, "Could not allocate device memory for %s\n", name);
         exit(4);
     }
@@ -1342,8 +1330,7 @@ bool bhyve_apic_in_platform(void) {
 static int do_open(const char *vmname, MachineState* ms) {
     /* Temporary Machine Initialization*/
     struct bhyve_machine* mach = get_bhyve_mach();
-    int ret, err;
-
+  
     // Close last VM if it exists
     if ((mach->vm = vm_open(vmname))) {
         vm_destroy(mach->vm);
@@ -1365,7 +1352,6 @@ static int do_open(const char *vmname, MachineState* ms) {
 static int
 bhyve_accel_init(AccelState *as, MachineState *ms)
 {
-    int err;
     printf("Bhyve Accelerator Machine Initialization\n");
 
     err = do_open(VM_NAME, ms);
