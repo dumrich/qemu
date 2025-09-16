@@ -734,7 +734,6 @@ static void bhyve_vcpu_pre_run(CPUState *cpu) {
     X86CPU *x86_cpu = X86_CPU(cpu);
     uint8_t tpr;
     bool sync_tpr = false;
-    int ret;
 
     bql_lock();
 
@@ -780,6 +779,7 @@ static void bhyve_vcpu_post_run(CPUState *cpu) {
     AccelCPUState *qcpu = cpu->accel;
     struct vcpu *vcpu = qcpu->vcpu;
     uint64_t val;
+    int ret;
 
     // Set Eflags
     ret = vm_get_register(vcpu, VM_REG_GUEST_RFLAGS, &env->eflags);
@@ -949,8 +949,6 @@ int bhyve_init_vcpu(CPUState *cpu)
     struct bhyve_machine* mach = get_bhyve_mach();
 
     AccelCPUState *qcpu;
-    struct seg_desc cs_desc;
-	uint64_t desc_base;
     int err, tmp;
 
     qcpu = g_new0(AccelCPUState, 1);
@@ -1031,7 +1029,7 @@ int bhyve_vcpu_exec(CPUState *cpu)
         ret = bhyve_vcpu_run(cpu);
     }
 
-    return 0;
+    return ret;
 }
 
 static void
@@ -1106,7 +1104,7 @@ static void bhyve_update_mapping(hwaddr start_pa, ram_addr_t size,
 {
     struct bhyve_machine *mach = get_bhyve_mach();
     struct bhyve_seg_and_off segoff;
-    int prot;
+    int prot, ret;
     segoff = calc_segoff_from_vmap(mach->host_vmap, host_va);
 
     if (add) {
@@ -1330,6 +1328,7 @@ bool bhyve_apic_in_platform(void) {
 static int do_open(const char *vmname, MachineState* ms) {
     /* Temporary Machine Initialization*/
     struct bhyve_machine* mach = get_bhyve_mach();
+    int err;
   
     // Close last VM if it exists
     if ((mach->vm = vm_open(vmname))) {
@@ -1345,13 +1344,14 @@ static int do_open(const char *vmname, MachineState* ms) {
     vm_set_memflags(mach->vm, 0);
 
     /* End Memory */
-    return 0;
+    return err;
 }
 
 
 static int
 bhyve_accel_init(AccelState *as, MachineState *ms)
 {
+    int err;
     printf("Bhyve Accelerator Machine Initialization\n");
 
     err = do_open(VM_NAME, ms);
