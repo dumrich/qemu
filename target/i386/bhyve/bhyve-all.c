@@ -925,6 +925,8 @@ static int bhyve_vcpu_run(CPUState *cpu) {
             break;
         case VM_EXITCODE_PAUSE:
             continue;
+        case VM_EXITCODE_IPI:
+            printf("Received an IPI\n");
         default:
             printf("Unhandled exit. Register Dump...\n");
             dump_registers(qcpu->vcpu);
