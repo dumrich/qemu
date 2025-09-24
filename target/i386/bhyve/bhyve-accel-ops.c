@@ -42,6 +42,9 @@ static void *qemu_bhyve_cpu_thread_fn(void *arg) {
     do {
         if (cpu_can_run(cpu)) {
             r = bhyve_vcpu_exec(cpu);
+            if (r == EXCP_DEBUG) {
+                cpu_handle_guest_debug(cpu);
+            }
         }
         while (cpu_thread_is_idle(cpu)) {
             qemu_cond_wait_bql(cpu->halt_cond);

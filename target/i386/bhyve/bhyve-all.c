@@ -927,6 +927,7 @@ static int bhyve_vcpu_run(CPUState *cpu) {
             continue;
         case VM_EXITCODE_IPI:
             printf("Received an IPI\n");
+            break;
         default:
             printf("Unhandled exit. Register Dump...\n");
             dump_registers(qcpu->vcpu);
@@ -992,6 +993,7 @@ int bhyve_init_vcpu(CPUState *cpu)
         err = vcpu_reset(qcpu->vcpu);
         assert(err == 0);
     } else {
+        err = vcpu_reset(qcpu->vcpu);
         err = vm_set_capability(qcpu->vcpu,
             VM_CAP_UNRESTRICTED_GUEST, 1);
     }
@@ -1014,8 +1016,6 @@ void bhyve_destroy_vcpu(CPUState *cpu) {
     AccelCPUState *qcpu = cpu->accel;
 
     vm_vcpu_close(qcpu->vcpu);
-
-    vm_destroy(mach->vm);
 }
 
 int bhyve_vcpu_exec(CPUState *cpu)
