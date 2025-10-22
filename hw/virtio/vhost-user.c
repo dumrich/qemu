@@ -1734,6 +1734,7 @@ vhost_user_backend_handle_shared_object_lookup(struct vhost_user *u,
 {
     QemuUUID uuid;
     CharFrontend *chr = u->user->chr;
+    Error *local_err = NULL;
     int dmabuf_fd = -1;
     int fd_num = 0;
 
