@@ -512,7 +512,8 @@ static int
 vmm_mem_callback(struct vm_qmem *mem)
 {
 
-    cpu_physical_memory_rw(mem->gpa, mem->data, mem->size, mem->write);
+    address_space_rw(&address_space_memory, mem->gpa, MEMTXATTRS_UNSPECIFIED,
+                     mem->data, mem->size, mem->write);
 
     current_cpu->accel->dirty = false;
     return 0;
