@@ -909,12 +909,8 @@ static int bhyve_vcpu_run(CPUState *cpu) {
                 vm_destroy(mach->vm);
                 rc = 1;
                 break;
-            case VM_SUSPEND_HALT:
-                exit(2);
-            case VM_SUSPEND_TRIPLEFAULT:
-                exit(3);
             default:
-                exit(100);
+                rc = 1;
             }
             break;
         case VM_EXITCODE_VMX:
@@ -948,6 +944,33 @@ static int bhyve_vcpu_run(CPUState *cpu) {
 }
 /* End vCPU functions */
 
+static void
+bhyve_ipi_signal(int sigcpu)
+{
+    if (current_cpu) {
+        AccelCPUState *qcpu = current_cpu->accel;
+
+        vm_suspend_cpu(qcpu->vcpu);
+    }
+}
+
+static void
+bhyve_init_cpu_signals(void)
+{
+    struct sigaction sigact;
+    sigset_t set;
+
+    /* Install the IPI handler. */
+    memset(&sigact, 0, sizeof(sigact));
+    sigact.sa_handler = bhyve_ipi_signal;
+    sigaction(SIG_IPI, &sigact, NULL);
+
+    /* Allow IPIs on the current thread. */
+    sigprocmask(SIG_BLOCK, NULL, &set);
+    sigdelset(&set, SIG_IPI);
+    pthread_sigmask(SIG_SETMASK, &set, NULL);
+}
+
 /* vCPU initialization functions */
 int bhyve_init_vcpu(CPUState *cpu)
 {
@@ -957,6 +980,7 @@ int bhyve_init_vcpu(CPUState *cpu)
     int err, tmp;
 
     qcpu = g_new0(AccelCPUState, 1);
+    bhyve_init_cpu_signals();
 
     // Create vCPU
     qcpu->vcpu = vm_vcpu_open(mach->vm, cpu->cpu_index); // cpu_index 0 is BSP
