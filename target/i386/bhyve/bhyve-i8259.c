@@ -3,7 +3,7 @@
 #include "hw/intc/i8259.h"
 #include "qemu/module.h"
 #include "system/bhyve.h"
-#include "hw/irq.h"
+#include "hw/core/irq.h"
 #include "qom/object.h"
 #include "bhyve-internal.h"
 
