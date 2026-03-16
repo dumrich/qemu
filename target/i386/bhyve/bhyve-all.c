@@ -1,7 +1,7 @@
 #include "qemu/osdep.h"
 #include "qemu/accel.h"
 #include "accel/accel-ops.h"
-#include "hw/boards.h"
+#include "hw/core/boards.h"
 #include "qemu/typedefs.h"
 #include "system/runstate.h"
 #include "system/bhyve.h"

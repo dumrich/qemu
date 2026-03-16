@@ -1,7 +1,7 @@
 
 #include "qemu/osdep.h"
 #include "monitor/monitor.h"
-#include "hw/qdev-properties.h"
+#include "hw/core/qdev-properties.h"
 #include "hw/intc/ioapic_internal.h"
 #include "system/bhyve.h"
 #include "bhyve-internal.h"
